@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groov Pilot Program</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stripe/3.0.3/stripe.js"></script>
+    <style>
+        :root {
+            --primary: #635BFF;
+            --gray: #697386;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f6f9fc;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: white;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            color: #1a1f36;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .product-title {
+            font-size: 1.5rem;
+            color: #1a1f36;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .product-description {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        footer {
+            background: white;
+            padding: 2rem;
+            text-align: center;
+            color: var(--gray);
+            margin-top: 4rem;
+        }
+
+        #error-message {
+            color: #dc2626;
+            text-align: center;
+            padding: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <img src="/api/placeholder/120/40" alt="Groov Logo" />
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="container">
+            <h1>Groov Pilot Program</h1>
+            <p>Join our exclusive pilot program and be among the first to experience the future.</p>
+        </div>
+    </div>
+
+    <div id="error-message"></div>
+
+    <main class="container">
+        <div class="product-grid" id="products">
+            <!-- Products will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 Groov. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Load Stripe key from environment
+        const STRIPE_KEY = window.STRIPE_PUBLIC_KEY || '';
+        let stripe;
+
+        try {
+            stripe = Stripe(STRIPE_KEY);
+        } catch (error) {
+            showError('Error initializing payment system. Please try again later.');
+        }
+
+        // Fetch products from Stripe
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) throw new Error('Failed to fetch products');
+                return await response.json();
+            } catch (error) {
+                showError('Error loading products. Please refresh the page.');
+                return [];
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // Render products
+        async function renderProducts() {
+            const productsContainer = document.getElementById('products');
+            productsContainer.innerHTML = ''; // Clear existing content
+
+            // Single product data
+            const products = [
+                {
+                    id: 'prod_1',
+                    name: 'Groov Pilot Program',
+                    price: '$300.00',
+                    description: 'Join our exclusive pilot program and get early access to all features and premium support.',
+                    image: '/api/placeholder/400/400'
+                }
+            ];
+
+            products.forEach(product => {
+                const productElement = document.createElement('div');
+                productElement.className = 'product-card';
+                productElement.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <h2 class="product-title">${product.name}</h2>
+                    <p class="product-price">${product.price}</p>
+                    <p class="product-description">${product.description}</p>
+                    <button class="btn" onclick="handlePurchase('${product.id}', this)">Purchase Now</button>
+                `;
+                productsContainer.appendChild(productElement);
+            });
+        }
+
+        // Handle purchase
+        async function handlePurchase(productId, button) {
+            if (!stripe) {
+                showError('Payment system is not initialized. Please refresh the page.');
+                return;
+            }
+
+            // Add loading state
+            button.classList.add('loading');
+            button.textContent = 'Processing...';
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId: productId
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Failed to create checkout session');
+
+                const session = await response.json();
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+            } catch (error) {
+                showError('Unable to process purchase. Please try again.');
+                console.error('Checkout Error:', error);
+            } finally {
+                // Reset button state
+                button.classList.remove('loading');
+                button.textContent = 'Purchase Now';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', renderProducts);
+    </script>
+</body>
+</html>
