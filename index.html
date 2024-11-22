@@ -201,7 +201,7 @@
                     id: 'prod_RFEcU3rFuLmlSQ',
                     name: 'Groov Pilot Program',
                     price: '$300.00',
-                    description: 'Join our exclusive pilot program and get early access to all features and premium support.',
+                    description: 'Let's Get Groovy.',
                     image: '/api/placeholder/400/400'
                 }
             ];
@@ -214,14 +214,14 @@
                     <h2 class="product-title">${product.name}</h2>
                     <p class="product-price">${product.price}</p>
                     <p class="product-description">${product.description}</p>
-                    <button class="btn" onclick="handlePurchase('${product.id}', this)">Purchase Now</button>
+                    <button class="btn" onclick="handlePurchase('${prod_RFEcU3rFuLmlSQ}', this)">Purchase Now</button>
                 `;
                 productsContainer.appendChild(productElement);
             });
         }
 
         // Handle purchase
-        async function handlePurchase(productId, button) {
+        async function handlePurchase(prod_RFEcU3rFuLmlSQ, button) {
             if (!stripe) {
                 showError('Payment system is not initialized. Please refresh the page.');
                 return;
