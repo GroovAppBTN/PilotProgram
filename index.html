@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groov Pilot Program</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stripe/3.0.3/stripe.js"></script>
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         :root {
-            --primary: #635BFF;
-            --gray: #697386;
+            --primary-color: #635BFF;
+            --gray-color: #697386;
         }
 
         body {
@@ -22,7 +23,7 @@
         .navbar {
             background: white;
             padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .container {
@@ -33,77 +34,56 @@
 
         .hero {
             text-align: center;
-            padding: 1rem 1rem;
+            padding: 3rem 1rem;
             background: white;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
         }
 
         .hero h1 {
-            font-size: 1rem;
+            font-size: 3rem;
             color: #1a1f36;
             margin-bottom: 1rem;
         }
 
         .hero p {
             font-size: 1.25rem;
-            color: var(--gray);
+            color: var(--gray-color);
             max-width: 600px;
             margin: 0 auto;
         }
 
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 2rem 0;
-        }
-
         .product-card {
             background: white;
-            border-radius: 8px;
             padding: 2rem;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
         }
 
-        .product-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .product-image {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-
-        .product-title {
-            font-size: 1.5rem;
+        .product-card h2 {
+            font-size: 2rem;
             color: #1a1f36;
-            margin-bottom: 0.5rem;
         }
 
-        .product-price {
-            font-size: 1.25rem;
-            color: var(--primary);
+        .product-card p {
+            color: var(--gray-color);
+            margin: 1rem 0;
+        }
+
+        .product-card .price {
+            font-size: 1.5rem;
+            color: var(--primary-color);
             font-weight: bold;
-            margin-bottom: 1rem;
-        }
-
-        .product-description {
-            color: var(--gray);
-            margin-bottom: 1.5rem;
         }
 
         .btn {
-            background: var(--primary);
+            background: var(--primary-color);
             color: white;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
             border: none;
-            padding: 0.75rem 1.5rem;
             border-radius: 4px;
-            font-size: 1rem;
             cursor: pointer;
             transition: opacity 0.2s ease;
         }
@@ -112,125 +92,55 @@
             opacity: 0.9;
         }
 
-        .loading {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
         footer {
             background: white;
             padding: 2rem;
             text-align: center;
-            color: var(--gray);
+            color: var(--gray-color);
             margin-top: 4rem;
-        }
-
-        #error-message {
-            color: #dc2626;
-            text-align: center;
-            padding: 1rem;
-            display: none;
         }
     </style>
 </head>
 <body>
+
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <img src="/api/placeholder/120/40" alt="Groov Logo" />
+            <img src="https://via.placeholder.com/120x40" alt="Groov Logo" />
         </div>
     </nav>
 
+    <!-- Hero Section -->
     <div class="hero">
         <div class="container">
-            <h1>Groov Pilot Program</h1>
-            <p>Be the first bar to offer Groov to your customers. Join our Pilot Program today.</p>
+            <h1>Welcome to Groov</h1>
+            <p>Join our exclusive pilot program and be among the first to experience the future of seamless productivity.</p>
         </div>
     </div>
 
-    <div id="error-message"></div>
-
-    <main class="container">
-        <div class="product-grid" id="products">
-            <!-- Products will be dynamically inserted here -->
+    <!-- Product Section -->
+    <div class="container">
+        <div class="product-card">
+            <h2>Groov Pilot Program</h2>
+            <p>Get early access to all features, premium support, and exclusive updates.</p>
+            <p class="price">$300.00</p>
+            <button id="pay-button" class="btn">Pay $300</button>
         </div>
-    </main>
+    </div>
 
+    <!-- Footer -->
     <footer>
         <div class="container">
-            <p>© 2024 Groov. All rights reserved.</p>
+            <p>&copy; 2024 Groov. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        // Load Stripe key from environment
-        const STRIPE_KEY ='pk_live_51OY7cFD2kLmsHBtHiVrcJl78jEZOX596Umw9UVWanjt8FjaWB8veAiJBfQdjsoxJaGfe2RSR2L1s7z8KZ4iT5BjK00K3tiM9WS';
-        let stripe;
+        // Replace this with your own Stripe public key
+        const stripe = Stripe('pk_live_51OY7cFD2kLmsHBtHiVrcJl78jEZOX596Umw9UVWanjt8FjaWB8veAiJBfQdjsoxJaGfe2RSR2L1s7z8KZ4iT5BjK00K3tiM9WS');  // Add your Stripe public key here
 
-        try {
-            stripe = Stripe(STRIPE_KEY);
-        } catch (error) {
-            showError('Error initializing payment system. Please try again later.');
-        }
-
-        // Fetch products from Stripe
-        async function fetchProducts() {
-            try {
-                const response = await fetch('/api/products');
-                if (!response.ok) throw new Error('Failed to fetch products');
-                return await response.json();
-            } catch (error) {
-                showError('Error loading products. Please refresh the page.');
-                return [];
-            }
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('error-message');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-        }
-
-        // Render products
-        async function renderProducts() {
-            const productsContainer = document.getElementById('products');
-            productsContainer.innerHTML = ''; // Clear existing content
-
-            // Single product data
-            const products = [
-                {
-                    id: 'prod_RFEcU3rFuLmlSQ',
-                    name: 'Groov Pilot Program',
-                    price: '$300.00',
-                    description: 'Let's Get Groovy.',
-                    image: '/api/placeholder/400/400'
-                }
-            ];
-
-            products.forEach(product => {
-                const productElement = document.createElement('div');
-                productElement.className = 'product-card';
-                productElement.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" class="product-image">
-                    <h2 class="product-title">${product.name}</h2>
-                    <p class="product-price">${product.price}</p>
-                    <p class="product-description">${product.description}</p>
-                    <button class="btn" onclick="handlePurchase('${prod_RFEcU3rFuLmlSQ}', this)">Purchase Now</button>
-                `;
-                productsContainer.appendChild(productElement);
-            });
-        }
-
-        // Handle purchase
-        async function handlePurchase(prod_RFEcU3rFuLmlSQ, button) {
-            if (!stripe) {
-                showError('Payment system is not initialized. Please refresh the page.');
-                return;
-            }
-
-            // Add loading state
-            button.classList.add('loading');
-            button.textContent = 'Processing...';
-
+        // Handle the payment button click
+        document.getElementById('pay-button').addEventListener('click', async () => {
             try {
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
@@ -238,34 +148,24 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        productId: productId
+                        productId: 'prod_1',  // Replace with your product ID
                     }),
                 });
 
-                if (!response.ok) throw new Error('Failed to create checkout session');
-
                 const session = await response.json();
-                
+
                 // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.id
-                });
+                const result = await stripe.redirectToCheckout({ sessionId: session.id });
 
                 if (result.error) {
-                    throw new Error(result.error.message);
+                    console.error('Error during checkout:', result.error);
+                    alert('Something went wrong. Please try again later.');
                 }
             } catch (error) {
-                showError('Unable to process purchase. Please try again.');
-                console.error('Checkout Error:', error);
-            } finally {
-                // Reset button state
-                button.classList.remove('loading');
-                button.textContent = 'Purchase Now';
+                console.error('Error creating checkout session:', error);
+                alert('An error occurred. Please try again.');
             }
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', renderProducts);
+        });
     </script>
 </body>
 </html>
